@@ -6,9 +6,14 @@ const user = require("../models/userModel");
 const createBook = async (req, res) => {
     try {
         let bookData = req.body;
-        let { title, userId, ISBN, category, subcategory, excerpt, releasedAt } =
-            bookData;
-
+        if(Object.keys(bookData).length == 0){
+            return res.status(400).send({ status: false, message: "mandatory feilds can not be empty" })
+        }
+        let { title, userId, ISBN, category, subcategory, excerpt, releasedAt } =bookData;
+        if(!mongoose. isValidObjectId(userId))
+        {
+            return res.status(400).send({ status: false, message: "enter valid userId" })
+        }
         if (title) {
             if (title.trim().length === 0) {
                 return res.status(400).send({ status: false, message: "Title can not be empty" })
