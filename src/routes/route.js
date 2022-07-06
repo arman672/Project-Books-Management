@@ -5,6 +5,6 @@ const router = express.Router()
 
 router.post("/register", userController.registerUser);
 router.post("/books", bookController.createBook);
-
+router.get("/books", bookController.getBook);
 
 module.exports=router
