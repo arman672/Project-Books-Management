@@ -12,7 +12,8 @@ const createBook = async (req, res) => {
         }
 
         let { title, userId, ISBN, category, subcategory, excerpt, releasedAt } = bookData;
-
+        
+        // title validation
         if (title) {
             if (title.trim().length === 0) {
                 return res.status(400).send({ status: false, message: "Title can not be empty" })
@@ -25,12 +26,16 @@ const createBook = async (req, res) => {
             return res.status(400).send({ status: false, message: "This title is being already used" })
         }
 
+        // excerpt validation
+
         if (excerpt) {
             if (excerpt.trim().length === 0) {
                 return res.status(400).send({ status: false, message: "excerpt can not be empty" })
             }
         } 
          else {return res.status(400).send({ status: false, message: "excerpt is a required field" })}
+
+         // userId validation
 
          if (userId) {
             let validUserId = mongoose.isValidObjectId(userId);
@@ -44,6 +49,8 @@ const createBook = async (req, res) => {
             }
         }
          else {return res.status(400).send({ status: false, message: "User Id is a required field" })}
+        
+         // ISBN validation
 
          if (ISBN) {
             let isbnPattern = /^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/g
@@ -59,6 +66,8 @@ const createBook = async (req, res) => {
         if (isUniqueISBN) {
             return res.status(400).send({ status: false, message: "This ISBN is already being used" })
         }
+        
+        // category validation
 
         if(category) {
             if (category.trim().length === 0) {
@@ -66,6 +75,8 @@ const createBook = async (req, res) => {
             }
         }
         else {return res.status(400).send({ status: false, message: "category is a required field" })}
+        
+        // subcategory validation
 
         if (subcategory) {
             if (subcategory.length === 0) {
@@ -78,6 +89,8 @@ const createBook = async (req, res) => {
                 let uniqueSub = [...new Set(subcategory)];
                 bookData.subcategory = uniqueSub;
             }
+    
+       // releasedAt validation
 
         if (releasedAt) {
                 let datePattern = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/g
@@ -94,7 +107,7 @@ const createBook = async (req, res) => {
         }
          catch (err) { return res.status(500).send({ status: false, message: err.message })}
     }
-          //============================================//====================================================//
+          //============================================//====================================================//=======================//
     
           const getBook = async (req, res) => {
             try {
