@@ -66,17 +66,17 @@ exports.registerUser = async function (req, res) {
         }
 
         const createUser = await userModel.create(userData)
-        res.status(201).send({ status: true, message: "Registered succesfully", data: { createUser } })
+        return res.status(201).send({ status: true, message: "Registered succesfully", data: { createUser } })
     } catch (err) {
-        res.status(500).send({ status: false, message: err.message });
+        return res.status(500).send({ status: false, message: err.message });
     }
 };
 
 //===================================================[API:FOR AUTHOR LOGIN]===========================================================
 exports.loginUser = async function (req, res) {
     try {
-        let emailId = req.body.email; //geting email from request body
-        let password = req.body.password; //getting password from request body
+        let emailId = req.body.email; 
+        let password = req.body.password; 
 
         let user = await userModel.findOne({ email: emailId, password: password, });
 
@@ -84,10 +84,10 @@ exports.loginUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "email or password is not correct", });
         }
 
-        let token = jwt.sign({ userId: user._id.toString() }, "lama", { expiresIn: "6d", });
+        let token = jwt.sign({ userId: user._id.toString() }, "lama", { expiresIn: "3d", });
 
-        res.status(200).send({ status: true, message: "login successfull", data: { token: token } });
+        return res.status(200).send({ status: true, message: "login successfull", data: { token: token } });
     } catch(err) {
-        res.status(500).send({ status: false, message: err.message });
+        return res.status(500).send({ status: false, message: err.message });
     }
 };
