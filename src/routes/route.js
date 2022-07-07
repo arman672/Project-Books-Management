@@ -7,6 +7,8 @@ router.post("/register", userController.registerUser);
 router.post("/login", userController.loginUser);
 
 router.post("/books", bookController.createBook);
-router.put("/books/:bookId", bookController.updateBook);
+router.get("/books", bookController.getBook);
+router.get("/books/:bookId", bookController.bybookId);
+
 
 module.exports=router
