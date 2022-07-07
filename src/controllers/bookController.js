@@ -165,8 +165,7 @@ const createBook = async (req, res) => {
                         return res.status(400).send({ status: false, message: "this is not a valid bookId " })
                     }
                 }
-                 else {return res.status(400).send({status: false,message: "Book Id must be present in order to search it"})}
-        
+                        
                 let findBook = await book.findOne({ _id: bookId }).lean()
         
                 if (!findBook) {
@@ -205,5 +204,15 @@ const createBook = async (req, res) => {
             } catch (err) {return res.status(500).send({ status: false, message: err.message })}
         }
         
+        // const deleteBook = async function (req, res) {
+        //     try {
+        //         let bookId = req.params.bookId
+        //         let book = await bookModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { isDeleted: true })
+        //        if (!book) return res.status(404).send({ status: false, msg: "Book is not present" })
+        //         return res.status(200).send({message:"The book has been deleted"})
+        //     } catch (err) { return res.status(500).send({error:err.message}) }
+        // }
 
-          module.exports = { createBook,getBook,bybookId };
+   
+
+          module.exports = { createBook,getBook,bybookId};
