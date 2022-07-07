@@ -1,7 +1,7 @@
 const book = require("../models/bookModel");
 const mongoose = require("mongoose");
 const user = require("../models/userModel");
-//const review = require("../models/reviewModel");
+const review = require("../models/reviewModel");
 
 const createBook = async (req, res) => {
     try {
@@ -107,7 +107,7 @@ const createBook = async (req, res) => {
         }
          catch (err) { return res.status(500).send({ status: false, message: err.message })}
     }
-          //============================================//====================================================//=======================//
+          //========================================================//====================================================//
     
           const getBook = async (req, res) => {
             try {
@@ -152,5 +152,58 @@ const createBook = async (req, res) => {
             } 
             catch (err) {return res.status(500).send({ status: false, message: err.message })}
         }
-    
-          module.exports = { createBook,getBook };
+
+        //=======================================================//===========================================================//
+        
+        const bybookId = async (req, res) => {
+            try {
+                let bookId = req.params.bookId
+        
+                if (bookId) {
+                    let verifyBookId = mongoose.isValidObjectId(bookId)
+                    if (!verifyBookId) {
+                        return res.status(400).send({ status: false, message: "this is not a valid bookId " })
+                    }
+                }
+                 else {return res.status(400).send({status: false,message: "Book Id must be present in order to search it"})}
+        
+                let findBook = await book.findOne({ _id: bookId }).lean()
+        
+                if (!findBook) {
+                    return res.status(404).send({status: false,message: "No document exists with this book Id"})
+                }
+        
+                if (findBook.isDeleted === true) {
+                    return res.status(404).send({status: false,message: "This book has been deleted by the user"});
+                }
+        
+                let findReview = await review.find({ bookId: findBook._id, isDeleted : false })
+                
+               findBook["reviewsData"] = findReview
+                
+                //if we don't use lean then we have to do this to get the expected results
+        
+                /* let details = {
+                        _id : findBook._id,
+                        title : findBook.title,
+                        excerpt : findBook.excerpt,
+                        userId : findBook.userId,
+                        category : findBook.category,
+                        subcategory : findBook.subcategory,
+                        deleted : false,
+                        reviews : findReview.length,
+                        deletedAt : findBook.deletedAt,
+                        releasedAt : findBook.releasedAt,
+                        createdAt : findBook.createdAt,
+                        updatedAt : findBook.updatedAt,
+                        reviewsData : findReview
+                    } 
+            
+                */
+        
+                return res.status(200).send({ status: false, message: "Book details", data: findBook })
+            } catch (err) {return res.status(500).send({ status: false, message: err.message })}
+        }
+        
+
+          module.exports = { createBook,getBook,bybookId };

@@ -1,6 +1,6 @@
 const { default: mongoose } = require("mongoose");
 const ObjectId = mongoose.Schema.Types.ObjectId
-
+// reference & populate
 const bookSchema = new mongoose.Schema({
     title : {
         type : String,

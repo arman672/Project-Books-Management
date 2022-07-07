@@ -5,8 +5,13 @@ const jwt = require("jsonwebtoken")
 exports.registerUser = async function (req, res) {
     try {
         const userData = req.body
-        let { title, name, phone, email, password, address } = userData;
 
+        if(Object.keys(userData).length == 0){
+            return res.status(400).send({status : false, message : "Plese enter the mandatory details"})
+        }
+
+        let { title, name, phone, email, password, address } = userData;
+       
         //title validation
         if (!title)
             return res.status(404).send({ status: false, msg: "tittle missing" });

@@ -8,5 +8,7 @@ router.post("/login", userController.loginUser);
 
 router.post("/books", bookController.createBook);
 router.get("/books", bookController.getBook);
+router.get("/books/:bookId", bookController.bybookId);
+
 
 module.exports=router
