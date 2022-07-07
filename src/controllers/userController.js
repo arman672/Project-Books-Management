@@ -9,10 +9,10 @@ exports.registerUser = async function (req, res) {
 
         //title validation
         if (!title)
-            return res.status(404).send({ status: false, msg: "tittle missing" });
+            return res.status(404).send({ status: false, message: "tittle missing" });
         let validTitle = ["Mr", "Mrs", "Miss"];
         if (!validTitle.includes(title))
-            return res.status(400).send({ status: false, msg: "Title should be one of Mr, Mrs, Miss" });
+            return res.status(400).send({ status: false, message: "Title should be one of Mr, Mrs, Miss" });
 
         //name validation
         if (!name) {
