@@ -21,9 +21,6 @@ exports.authorization = async function (req, res, next) {
     try {
         //for update delete
         const idInParams = req.params.bookId
-        if (!mongoose.isValidObjectId(req.params.bookId)) {
-            return res.status(400).send({ status: false, message: "enter valid userId" })
-        }
         if (idInParams) {
             const bookOwner = await bookModel.findOne({ _id: idInParams })
             if (req.loggedInUserId == bookOwner.userId) {
@@ -36,9 +33,6 @@ exports.authorization = async function (req, res, next) {
 
         //for create
         const idInBody = req.body.userId
-        if (!mongoose.isValidObjectId(idInBody)) {
-            return res.status(400).send({ status: false, message: "enter valid userId" })
-        }
         if (idInBody) {
             if (req.loggedInUserId == idInBody) {
                 return next();

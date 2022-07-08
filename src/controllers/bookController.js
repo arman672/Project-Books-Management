@@ -30,7 +30,6 @@ const createBook = async (req, res) => {
         }
 
         // excerpt validation
-
         if (excerpt) {
             if (excerpt.trim().length === 0) {
                 return res.status(400).send({ status: false, message: "excerpt can not be empty" })
@@ -60,14 +59,13 @@ const createBook = async (req, res) => {
         }
         else { return res.status(400).send({ status: false, message: "ISBN Number is a required field" }) }
 
-        let isUniqueISBN = await book.findOne({ ISBN: ISBN });
+        let isUniqueISBN = await book.findOne({ ISBN: ISBN});
 
         if (isUniqueISBN) {
             return res.status(400).send({ status: false, message: "This ISBN is already being used" })
         }
 
         // category validation
-
         if (category) {
             if (category.trim().length === 0) {
                 return res.status(400).send({ status: false, message: "category cannot be empty" })
@@ -172,10 +170,9 @@ const updateBook = async function (req, res) {
 const getBook = async (req, res) => {
     try {
         let data = req.query
-        let { userId, category, subcategory } = data
+        let { userId, category} = data
         let filter = {
             isDeleted: false,
-            ...data
         };
 
         if (userId) {
@@ -188,24 +185,30 @@ const getBook = async (req, res) => {
             if (!findbyUserId) {
                 return res.status(404).send({ status: false, message: "no books with this userId exists" })
             }
+            filter["userId"] = userId
         }
         if (category) {
             let findbyCategory = await book.findOne({ category: category })
             if (!findbyCategory) {
                 return res.status(404).send({ status: false, message: "no books with this category exists" })
             }
+            filter["category"] = category
         }
-
-        if (subcategory) {
-            let findbysubcategory = await book.findOne({ subcategory: subcategory })
+        
+        if (data.subcategory) {
+            let subCatArray = { "$in": data.subcategory.split(",")}
+            console.log(subCatArray)
+            let findbysubcategory = await book.findOne({ subcategory: subCatArray })
             if (!findbysubcategory) {
                 return res.status(404).send({ status: false, message: "no books with this subcategory exists" })
             }
+            filter["subcategory"] = subCatArray
         }
-        let findBook = await book.find(filter).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1, }).sort({ title: 1 })
+        console.log(filter)
+        let findBook = await book.find(filter).select({ _id: 1, title: 1,subcategory:1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1, }).sort({ title: 1 })
 
         if (!findBook.length) {
-            return res.status(404).send({ status: false, message: "No books with this query exists" })
+            return res.status(404).send({ status: false, message: "No books with the given filter found" })
         }
         else {
             return res.status(200).send({ status: true, message: "Book List", data: findBook })
@@ -217,7 +220,7 @@ const getBook = async (req, res) => {
 
 //=======================================================get books by id===========================================================//
 
-const bybookId = async (req, res) => {
+const getBookById = async (req, res) => {
     try {
         let bookId = req.params.bookId
 
@@ -243,32 +246,33 @@ const bybookId = async (req, res) => {
 
         findBook["reviewsData"] = findReview
 
-        //if we don't use lean then we have to do this to get the expected results
-
-        /* let details = {
-                _id : findBook._id,
-                title : findBook.title,
-                excerpt : findBook.excerpt,
-                userId : findBook.userId,
-                category : findBook.category,
-                subcategory : findBook.subcategory,
-                deleted : false,
-                reviews : findReview.length,
-                deletedAt : findBook.deletedAt,
-                releasedAt : findBook.releasedAt,
-                createdAt : findBook.createdAt,
-                updatedAt : findBook.updatedAt,
-                reviewsData : findReview
-            } 
-    
-        */
-
         return res.status(200).send({ status: false, message: "Book details", data: findBook })
     } catch (err) { return res.status(500).send({ status: false, message: err.message }) }
 }
 
-const deleteBookByID = async (req, res) => {
+const deleteBookById = async (req, res) => {
+    try {
+        let bookId = req.params.bookId
 
+        if (bookId) {
+            let verifyBookId = mongoose.isValidObjectId(bookId)
+            if (!verifyBookId) {
+                return res.status(400).send({ status: false, message: "this is not a valid bookId " })
+            }
+        }
+        else { return res.status(400).send({ status: false, message: "Book Id must be present in order to perform delete operation"}) }
+
+        let findBook = await book.findOne({ _id: bookId, isDeleted: false})
+
+        if (!findBook) {
+            return res.status(404).send({ status: false, message: "No document exists with this book Id" })
+        }
+
+        await book.findOneAndUpdate({ _id: bookId },{$set: { isDeleted: true}});
+        return res.status(200).send({ status: true, message: "Succesful" });
+    } catch (err) { return res.status(500).send({ status: false, message: err.message }) }
 }
 
-module.exports = { createBook, getBook, bybookId, updateBook, deleteBookByID };
+
+
+module.exports = { createBook, getBook, getBookById, updateBook, deleteBookById };
