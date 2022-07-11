@@ -10,6 +10,7 @@ exports.authentication = async function (req, res, next) {
             return res.status(401).send({ status: false, message: "token must be present" })
         }
         let decodedtoken = jwt.verify(token, 'lama');
+        console.log(decodedtoken)
         req.loggedInUserId = decodedtoken.userId
         next();
     }
@@ -21,18 +22,30 @@ exports.authorization = async function (req, res, next) {
     try {
         //for update delete
         const idInParams = req.params.bookId
+
+        if (idInParams) {
+            if (!mongoose.isValidObjectId(idInParams)) {
+                return res.status(400).send({ status: false, message: "enter valid bookid" })
+            }
+        }
+
         if (idInParams) {
             const bookOwner = await bookModel.findOne({ _id: idInParams })
             if (req.loggedInUserId == bookOwner.userId) {
-                console.log("hello")
                 return next();
             } else {
-                return res.status(403).send({ status: false, message: "you you are not authroized to perform this operation" });
+                return res.status(403).send({ status: false, message: "you are not authroized to perform this operation" });
             }
         }
 
         //for create
         const idInBody = req.body.userId
+
+        if (!idInBody) return res.status(400).send({ status: false, message: "userid is required" });
+        if (!mongoose.isValidObjectId(idInBody)) {
+            return res.status(400).send({ status: false, message: "enter valid userId" })
+        }
+
         if (idInBody) {
             if (req.loggedInUserId == idInBody) {
                 return next();

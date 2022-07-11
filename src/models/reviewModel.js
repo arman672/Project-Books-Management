@@ -16,20 +16,22 @@ const reviewModel =  new mongoose.Schema({
     
     reviewedAt: {
         type :Date,  
-        default : Date.now()
+        default : Date.now(),
+        required: true
     },
 
     rating: {
         type :Number, 
         min : 1, 
         max : 5, 
-        },
+    },
     review: {
         type : String
     },
     isDeleted: {
         type :Boolean, 
-        default: false},
+        default: false
+    },
   }, {timestamps : true})
 
   module.exports = new mongoose.model('Review', reviewModel)

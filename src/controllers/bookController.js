@@ -74,7 +74,7 @@ const createBook = async (req, res) => {
         else { return res.status(400).send({ status: false, message: "category is a required field" }) }
 
         if (subcategory) {
-            if (subcategory.length === 0) {
+            if (subcategory.trim().length === 0) {
                 return res.status(400).send({ status: false, message: "subcategory is cannot be empty" })
             }
         }
@@ -136,12 +136,12 @@ const updateBook = async function (req, res) {
             findBook.title = data.title
         }
 
-        if (data["release date"]) {
+        if (data["releasedAt"]) {
             let datePattern = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/g
-            if (!data["release date"].match(datePattern)) {
+            if (!data["releasedAt"].match(datePattern)) {
                 return res.status(400).send({ status: false, message: "Date format is not valid" })
             }
-            findBook.releasedAt = data["release date"]
+            findBook.releasedAt = data["releasedAt"]
         }
 
         if (data.ISBN) {
@@ -157,7 +157,7 @@ const updateBook = async function (req, res) {
         }
 
         findBook.save();
-        return res.status(200).send({ status: false, message: "Successfully updated", data: { findBook } })
+        return res.status(200).send({ status: true, message: "Successfully updated", data: { findBook } })
 
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message })
@@ -204,7 +204,6 @@ const getBook = async (req, res) => {
             }
             filter["subcategory"] = subCatArray
         }
-        console.log(filter)
         let findBook = await book.find(filter).select({ _id: 1, title: 1,subcategory:1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1, }).sort({ title: 1 })
 
         if (!findBook.length) {
@@ -246,7 +245,7 @@ const getBookById = async (req, res) => {
 
         findBook["reviewsData"] = findReview
 
-        return res.status(200).send({ status: false, message: "Book details", data: findBook })
+        return res.status(200).send({ status: true, message: "Book details", data: findBook })
     } catch (err) { return res.status(500).send({ status: false, message: err.message }) }
 }
 
@@ -268,7 +267,8 @@ const deleteBookById = async (req, res) => {
             return res.status(404).send({ status: false, message: "No document exists with this book Id" })
         }
 
-        await book.findOneAndUpdate({ _id: bookId },{$set: { isDeleted: true}});
+        await book.findOneAndUpdate({ _id: bookId },{$set :{isDeleted : true,  deletedAt : Date.now()}})
+
         return res.status(200).send({ status: true, message: "Succesful" });
     } catch (err) { return res.status(500).send({ status: false, message: err.message }) }
 }
