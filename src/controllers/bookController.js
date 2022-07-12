@@ -52,14 +52,21 @@ const createBook = async (req, res) => {
 
         if (ISBN) {
             let isbnPattern = /^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/g
-
             if (!ISBN.match(isbnPattern)) {
-                return res.status(400).send({ status: false, message: "Please provide a valid ISBN number" })
+                return res.status(400).send({ status: false, message: "Please provide a valid 13 digit ISBN number" })
             }
+
+            const regex = new RegExp("-")
+            for (let i = 0; i < ISBN.length; i++) {
+                if ((ISBN.match(regex) || []).length >= 1) {
+                    ISBN = ISBN.replace(regex, '')
+                }
+            }
+            bookData.ISBN = ISBN
         }
         else { return res.status(400).send({ status: false, message: "ISBN Number is a required field" }) }
 
-        let isUniqueISBN = await book.findOne({ ISBN: ISBN});
+        let isUniqueISBN = await book.findOne({ ISBN: ISBN });
 
         if (isUniqueISBN) {
             return res.status(400).send({ status: false, message: "This ISBN is already being used" })
@@ -70,20 +77,26 @@ const createBook = async (req, res) => {
             if (category.trim().length === 0) {
                 return res.status(400).send({ status: false, message: "category cannot be empty" })
             }
+            bookData.category = category
         }
         else { return res.status(400).send({ status: false, message: "category is a required field" }) }
 
-        if (subcategory) {
+        if (typeof subcategory == "string") {
             if (subcategory.trim().length === 0) {
-                return res.status(400).send({ status: false, message: "subcategory is cannot be empty" })
+                return res.status(400).send({ status: false, message: "subcategory cannot be empty" })
             }
         }
-        else { return res.status(400).send({ status: false, message: "subcategory is a required field" }) }
 
         if (Array.isArray(subcategory)) {
             let uniqueSub = [...new Set(subcategory)];
+            for (let i=0;i<uniqueSub.length;i++) {
+                if (typeof uniqueSub[i] != "string") return res.status(400).send({ status: false, message: "subcategory element must be of type string" })
+                if (uniqueSub[i].trim().length == 0) return res.status(400).send({ status: false, message: "subcategory element cannot be empty" })
+            }
             bookData.subcategory = uniqueSub;
         }
+
+        if (!subcategory) { return res.status(400).send({ status: false, message: "subcategory is a required field" }) }
 
         if (releasedAt) {
             let datePattern = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/g
@@ -157,7 +170,7 @@ const updateBook = async function (req, res) {
         }
 
         findBook.save();
-        return res.status(200).send({ status: true, message: "Successfully updated", data: { findBook } })
+        return res.status(200).send({ status: true, message: "Successfully updated", data: findBook })
 
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message })
@@ -170,7 +183,7 @@ const updateBook = async function (req, res) {
 const getBook = async (req, res) => {
     try {
         let data = req.query
-        let { userId, category} = data
+        let { userId, category } = data
         let filter = {
             isDeleted: false,
         };
@@ -194,9 +207,9 @@ const getBook = async (req, res) => {
             }
             filter["category"] = category
         }
-        
+
         if (data.subcategory) {
-            let subCatArray = { "$in": data.subcategory.split(",")}
+            let subCatArray = { "$in": data.subcategory.split(",") }
             console.log(subCatArray)
             let findbysubcategory = await book.findOne({ subcategory: subCatArray })
             if (!findbysubcategory) {
@@ -204,13 +217,13 @@ const getBook = async (req, res) => {
             }
             filter["subcategory"] = subCatArray
         }
-        let findBook = await book.find(filter).select({ _id: 1, title: 1,subcategory:1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1, }).sort({ title: 1 })
+        let findBook = await book.find(filter).select({ _id: 1, title: 1, subcategory: 1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1, }).sort({ title: 1 })
 
         if (!findBook.length) {
             return res.status(404).send({ status: false, message: "No books with the given filter found" })
         }
         else {
-            return res.status(200).send({ status: true, message: "Book List", data: findBook })
+            return res.status(200).send({ status: true, message: "Books list", data: findBook })
         }
     }
     catch (err) { return res.status(500).send({ status: false, message: err.message }) }
@@ -259,15 +272,15 @@ const deleteBookById = async (req, res) => {
                 return res.status(400).send({ status: false, message: "this is not a valid bookId " })
             }
         }
-        else { return res.status(400).send({ status: false, message: "Book Id must be present in order to perform delete operation"}) }
+        else { return res.status(400).send({ status: false, message: "Book Id must be present in order to perform delete operation" }) }
 
-        let findBook = await book.findOne({ _id: bookId, isDeleted: false})
+        let findBook = await book.findOne({ _id: bookId, isDeleted: false })
 
         if (!findBook) {
             return res.status(404).send({ status: false, message: "No document exists with this book Id" })
         }
 
-        await book.findOneAndUpdate({ _id: bookId },{$set :{isDeleted : true,  deletedAt : Date.now()}})
+        await book.findOneAndUpdate({ _id: bookId }, { $set: { isDeleted: true, deletedAt: Date.now() } })
 
         return res.status(200).send({ status: true, message: "Succesful" });
     } catch (err) { return res.status(500).send({ status: false, message: err.message }) }
